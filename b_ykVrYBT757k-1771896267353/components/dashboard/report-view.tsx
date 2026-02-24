@@ -14,8 +14,10 @@ import {
 } from "@/components/ui/select"
 import { supabase } from "@/lib/supabase"
 import { toast } from "sonner"
+import { useAuth } from "@/components/providers/auth-provider"
 
 export function ReportView() {
+  const { user } = useAuth()
   const [submitted, setSubmitted] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [cin, setCin] = useState("")
@@ -30,13 +32,19 @@ export function ReportView() {
 
     setIsSubmitting(true)
     try {
+      if (!user) {
+        toast.error("You must be logged in to submit a report")
+        return
+      }
+
       const { error } = await supabase
         .from("blacklisted_clients")
         .insert([
           {
             cin_number: cin,
             incident_type: incidentType,
-            description: description
+            description: description,
+            reported_by: user.id
           }
         ])
 
