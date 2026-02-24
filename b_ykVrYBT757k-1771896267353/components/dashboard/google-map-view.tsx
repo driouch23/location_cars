@@ -24,6 +24,21 @@ interface Agency {
     isPartner: boolean
 }
 
+const cityCoords: Record<string, { lat: number; lng: number }> = {
+    "Casablanca": { lat: 33.5731, lng: -7.5898 },
+    "Rabat": { lat: 34.0209, lng: -6.8416 },
+    "Marrakech": { lat: 31.6295, lng: -7.9811 },
+    "Tangier": { lat: 35.7595, lng: -5.8330 },
+    "Agadir": { lat: 30.4278, lng: -9.5981 },
+    "Fes": { lat: 34.0333, lng: -5.0000 },
+    "Meknes": { lat: 33.8935, lng: -5.5473 },
+    "Kenitra": { lat: 34.261, lng: -6.5802 },
+    "Tetouan": { lat: 35.5889, lng: -5.3626 },
+    "Oujda": { lat: 34.6867, lng: -1.9114 },
+    "Nador": { lat: 35.1667, lng: -2.9333 },
+    "El Jadida": { lat: 33.2333, lng: -8.5000 }
+}
+
 function MapContent({ partners }: { partners: any[] }) {
     const map = useMap()
     const [agencies, setAgencies] = useState<Agency[]>([])
@@ -56,7 +71,6 @@ function MapContent({ partners }: { partners: any[] }) {
                     const lng = place.geometry?.location?.lng() || 0
 
                     // Check if this place is one of our partners
-                    // Simple matching by name or proximity (name is safer for this demo)
                     const isPartner = partners.some(p =>
                         p.agency_name.toLowerCase().includes(place.name?.toLowerCase() || "") ||
                         (place.name?.toLowerCase().includes(p.agency_name.toLowerCase()) && p.city === (place.vicinity || ""))
@@ -72,15 +86,22 @@ function MapContent({ partners }: { partners: any[] }) {
                     }
                 })
 
-                // Add registered partners that might not be in the Google results yet
-                const partnerMarkers: Agency[] = partners.map(p => ({
-                    id: p.id,
-                    name: p.agency_name,
-                    address: p.city,
-                    lat: p.lat || (31.7917 + (Math.random() - 0.5) * 2), // Fallback if no specific lat/lng
-                    lng: p.lng || (-7.0926 + (Math.random() - 0.5) * 2),
-                    isPartner: true
-                })).filter(p => !mappedAgencies.some(a => a.name === p.name))
+                // Add registered partners with precise coordinates
+                const partnerMarkers: Agency[] = partners.map(p => {
+                    const coords = cityCoords[p.city] || {
+                        lat: 31.7917 + (Math.random() - 0.5) * 2,
+                        lng: -7.0926 + (Math.random() - 0.5) * 2
+                    }
+
+                    return {
+                        id: p.id,
+                        name: p.agency_name,
+                        address: `${p.city}, Morocco`,
+                        lat: coords.lat,
+                        lng: coords.lng,
+                        isPartner: true
+                    }
+                }).filter(p => !mappedAgencies.some(a => a.name === p.name))
 
                 setAgencies([...mappedAgencies, ...partnerMarkers])
             }
@@ -156,7 +177,16 @@ function MapContent({ partners }: { partners: any[] }) {
 }
 
 export function GoogleMapView({ partners = [] }: { partners?: any[] }) {
-    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
+    // Robust environment variable access
+    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || (typeof window !== 'undefined' ? (window as any).NEXT_PUBLIC_GOOGLE_MAPS_API_KEY : null)
+
+    useEffect(() => {
+        if (apiKey) {
+            console.log("DEBUG: Google Maps API Key detected (Suffix: ..." + apiKey.slice(-4) + ")")
+        } else {
+            console.warn("DEBUG: Google Maps API Key MISSING in GoogleMapView")
+        }
+    }, [apiKey])
 
     if (!apiKey) {
         return (
