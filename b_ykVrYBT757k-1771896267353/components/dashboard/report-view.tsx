@@ -44,7 +44,6 @@ export function ReportView() {
             cin_number: cin,
             incident_type: incidentType,
             description: description,
-            reported_by: user.id
           }
         ])
 

@@ -8,11 +8,12 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
-import { Shield, Loader2, KeyRound, Mail, Building2 } from "lucide-react"
+import { Shield, Loader2, KeyRound, Mail, Building2, User } from "lucide-react"
 
 export default function RegisterPage() {
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
+    const [fullName, setFullName] = useState("")
     const [agencyName, setAgencyName] = useState("")
     const [isLoading, setIsLoading] = useState(false)
     const router = useRouter()
@@ -29,6 +30,7 @@ export default function RegisterPage() {
                 options: {
                     data: {
                         agency_name: agencyName,
+                        full_name: fullName,
                     },
                 },
             })
@@ -70,6 +72,23 @@ export default function RegisterPage() {
 
                 <div className="rounded-2xl border border-border bg-card p-8 shadow-xl">
                     <form onSubmit={handleRegister} className="space-y-6">
+                        <div className="space-y-2">
+                            <Label htmlFor="fullName">Full Name</Label>
+                            <div className="relative">
+                                <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                                <Input
+                                    id="fullName"
+                                    type="text"
+                                    placeholder="John Doe"
+                                    required
+                                    value={fullName}
+                                    onChange={(e) => setFullName(e.target.value)}
+                                    className="pl-10"
+                                    disabled={isLoading}
+                                />
+                            </div>
+                        </div>
+
                         <div className="space-y-2">
                             <Label htmlFor="agencyName">Agency Name</Label>
                             <div className="relative">
