@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { SuccessCard, AlertCard } from "./result-cards"
 import { supabase } from "@/lib/supabase"
+import { useAuth } from "@/components/providers/auth-provider"
 
 interface BlacklistedClient {
   id: string
@@ -16,6 +17,7 @@ interface BlacklistedClient {
 }
 
 export function SearchView() {
+  const { user } = useAuth()
   const [query, setQuery] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [clientData, setClientData] = useState<BlacklistedClient | null>(null)
@@ -41,6 +43,16 @@ export function SearchView() {
 
       setClientData(data || null)
       setHasSearched(true)
+
+      // Log the search in history
+      if (user) {
+        await supabase.from("search_history").insert([
+          {
+            agency_id: user.id,
+            search_query: cinUpper,
+          }
+        ])
+      }
     } catch (error) {
       console.error("Unexpected error:", error)
     } finally {

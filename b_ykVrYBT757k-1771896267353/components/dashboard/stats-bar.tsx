@@ -48,27 +48,21 @@ export function StatsBar() {
 
     async function fetchSearchesCount() {
       try {
-        // NOTE: This assumes a 'search_logs' table exists with a 'created_at' column.
-        // TODO: REMINDER - Create the 'search_logs' table in Supabase to enable this stat.
         const today = new Date().toISOString().split('T')[0]
         const { count, error } = await supabase
-          .from("search_logs")
+          .from("search_history")
           .select("*", { count: "exact", head: true })
+          .eq("agency_id", session?.user.id)
           .gte("created_at", `${today}T00:00:00Z`)
 
         if (error) {
-          // If table doesn't exist (error code 42P01 in Postgres), default to 0
-          if (error.code === '42P01') {
-            console.warn("Table 'search_logs' does not exist. Defaulting to 0 searches today.")
-            setSearchesToday(0)
-          } else {
-            throw error
-          }
+          console.error("Error fetching searches today count:", error)
+          setSearchesToday(0)
         } else {
           setSearchesToday(count || 0)
         }
       } catch (error) {
-        console.error("Error fetching searches today count:", error)
+        console.error("Unexpected error fetching searches today:", error)
         setSearchesToday(0)
       } finally {
         setIsSearchesLoading(false)
