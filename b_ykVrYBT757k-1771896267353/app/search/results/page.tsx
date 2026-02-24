@@ -45,7 +45,7 @@ function SearchResultsContent() {
               agency_name
             )
           `)
-                    .eq("cin_number", cin.toUpperCase())
+                    .ilike("cin_number", cin)
                     .maybeSingle()
 
                 if (error) throw error

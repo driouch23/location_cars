@@ -35,7 +35,7 @@ export function SearchView() {
       const { data, error } = await supabase
         .from("blacklisted_clients")
         .select("id")
-        .eq("cin_number", cinUpper)
+        .ilike("cin_number", cinUpper)
         .maybeSingle()
 
       const hasMatch = !!data
