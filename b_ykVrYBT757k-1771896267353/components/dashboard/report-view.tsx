@@ -21,6 +21,8 @@ export function ReportView() {
   const [submitted, setSubmitted] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [cin, setCin] = useState("")
+  const [licenseNumber, setLicenseNumber] = useState("")
+  const [severity, setSeverity] = useState("Medium")
   const [incidentType, setIncidentType] = useState("")
   const [city, setCity] = useState("")
   const [description, setDescription] = useState("")
@@ -42,7 +44,9 @@ export function ReportView() {
         .from("blacklisted_clients")
         .insert([
           {
-            cin_number: cin,
+            cin_number: cin.trim().toUpperCase(),
+            license_number: licenseNumber.trim().toUpperCase() || null,
+            severity,
             incident_type: incidentType,
             description: description,
             city: city,
@@ -55,6 +59,8 @@ export function ReportView() {
       setSubmitted(true)
       // Reset form
       setCin("")
+      setLicenseNumber("")
+      setSeverity("Medium")
       setIncidentType("")
       setCity("")
       setDescription("")
@@ -113,13 +119,13 @@ export function ReportView() {
             htmlFor="cin"
             className="mb-1.5 block text-sm font-medium text-card-foreground"
           >
-            Client CIN or License Number
+            Client CIN
           </label>
           <Input
             id="cin"
             value={cin}
             onChange={(e) => setCin(e.target.value)}
-            placeholder="Enter CIN or Driver's License Number"
+            placeholder="Enter CIN Number (e.g. AB123456)"
             className="h-11 rounded-lg"
             disabled={isSubmitting}
           />
@@ -127,28 +133,70 @@ export function ReportView() {
 
         <div>
           <label
-            htmlFor="incident-type"
+            htmlFor="license"
             className="mb-1.5 block text-sm font-medium text-card-foreground"
           >
-            Incident Type
+            Driver&apos;s License Number (Optional)
           </label>
-          <Select
-            value={incidentType}
-            onValueChange={setIncidentType}
+          <Input
+            id="license"
+            value={licenseNumber}
+            onChange={(e) => setLicenseNumber(e.target.value)}
+            placeholder="Enter License Number"
+            className="h-11 rounded-lg"
             disabled={isSubmitting}
-          >
-            <SelectTrigger id="incident-type" className="h-11 rounded-lg">
-              <SelectValue placeholder="Select incident type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="unpaid">Unpaid Fees</SelectItem>
-              <SelectItem value="accident">Vehicle Accident</SelectItem>
-              <SelectItem value="theft">Vehicle Theft</SelectItem>
-              <SelectItem value="damage">Vehicle Damage</SelectItem>
-              <SelectItem value="fraud">Fraudulent Documents</SelectItem>
-              <SelectItem value="other">Other</SelectItem>
-            </SelectContent>
-          </Select>
+          />
+        </div>
+
+        <div className="grid gap-5 md:grid-cols-2">
+          <div>
+            <label
+              htmlFor="incident-type"
+              className="mb-1.5 block text-sm font-medium text-card-foreground"
+            >
+              Incident Type
+            </label>
+            <Select
+              value={incidentType}
+              onValueChange={setIncidentType}
+              disabled={isSubmitting}
+            >
+              <SelectTrigger id="incident-type" className="h-11 rounded-lg">
+                <SelectValue placeholder="Select type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="unpaid">Unpaid Fees</SelectItem>
+                <SelectItem value="accident">Vehicle Accident</SelectItem>
+                <SelectItem value="theft">Vehicle Theft</SelectItem>
+                <SelectItem value="damage">Vehicle Damage</SelectItem>
+                <SelectItem value="fraud">Fraudulent Documents</SelectItem>
+                <SelectItem value="other">Other</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <label
+              htmlFor="severity"
+              className="mb-1.5 block text-sm font-medium text-card-foreground"
+            >
+              Severity Level
+            </label>
+            <Select
+              value={severity}
+              onValueChange={setSeverity}
+              disabled={isSubmitting}
+            >
+              <SelectTrigger id="severity" className="h-11 rounded-lg">
+                <SelectValue placeholder="Select severity" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Low">Low - Minor issue</SelectItem>
+                <SelectItem value="Medium">Medium - Serious concern</SelectItem>
+                <SelectItem value="High">High - Critical risk / Blacklist</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         <div>

@@ -12,7 +12,9 @@ import { format } from "date-fns"
 interface BlacklistedClient {
     id: string
     cin_number: string
+    license_number?: string
     incident_type: string
+    severity?: 'High' | 'Medium' | 'Low'
     description: string
     created_at: string
     city: string
@@ -28,7 +30,7 @@ function SearchResultsContent() {
     const cin = searchParams.get("q")
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
-    const [clientData, setClientData] = useState<BlacklistedClient | null>(null)
+    const [allIncidents, setAllIncidents] = useState<BlacklistedClient[]>([])
 
     useEffect(() => {
         async function fetchResults() {
@@ -130,71 +132,114 @@ function SearchResultsContent() {
             </Button>
 
             <div className="flex flex-col gap-6">
-                {clientData ? (
-                    <div className="overflow-hidden rounded-2xl border border-destructive/20 bg-destructive/[0.02] shadow-sm">
-                        {/* Alert Header */}
-                        <div className="flex items-center gap-4 border-b border-destructive/10 bg-destructive/5 p-6">
-                            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-destructive/15">
-                                <ShieldAlert className="h-6 w-6 text-destructive" />
+                {allIncidents.length > 0 ? (
+                    <div className="space-y-6">
+                        {/* Summary Card */}
+                        <div className="overflow-hidden rounded-2xl border border-destructive/20 bg-destructive/[0.02] shadow-sm">
+                            <div className="flex items-center justify-between border-b border-destructive/10 bg-destructive/5 p-6">
+                                <div className="flex items-center gap-4">
+                                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-destructive/15">
+                                        <ShieldAlert className="h-6 w-6 text-destructive" />
+                                    </div>
+                                    <div>
+                                        <h2 className="text-xl font-bold text-destructive">Client Flagged: {allIncidents.length} Incident(s)</h2>
+                                        <p className="text-sm text-destructive/80 font-medium tracking-tight">
+                                            Search Query: {cin?.toUpperCase()}
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="rounded-full bg-destructive/10 px-4 py-1.5 text-xs font-bold text-destructive uppercase tracking-wider">
+                                    Awaiting Deep Review
+                                </div>
                             </div>
-                            <div>
-                                <h2 className="text-xl font-bold text-destructive">Flagged Client Detected</h2>
-                                <p className="text-sm text-destructive/80 font-medium tracking-tight">CIN: {clientData.cin_number}</p>
+
+                            {/* Header Info */}
+                            <div className="bg-card p-6 border-b border-border/50 grid grid-cols-2 md:grid-cols-3 gap-4">
+                                <div>
+                                    <p className="text-[10px] uppercase font-bold text-muted-foreground">Primary CIN</p>
+                                    <p className="text-sm font-bold">{allIncidents[0].cin_number}</p>
+                                </div>
+                                {allIncidents[0].license_number && (
+                                    <div>
+                                        <p className="text-[10px] uppercase font-bold text-muted-foreground">Permis de conduire</p>
+                                        <p className="text-sm font-bold">{allIncidents[0].license_number}</p>
+                                    </div>
+                                )}
+                                <div>
+                                    <p className="text-[10px] uppercase font-bold text-muted-foreground">Risk Status</p>
+                                    <p className={`text-sm font-bold ${allIncidents.some(i => i.severity === 'High') ? 'text-destructive' : 'text-warning'}`}>
+                                        {allIncidents.some(i => i.severity === 'High') ? 'CRITICAL RISK' : 'MODERATE RISK'}
+                                    </p>
+                                </div>
                             </div>
                         </div>
 
-                        {/* Content */}
-                        <div className="grid gap-6 p-8 md:grid-cols-2">
-                            <div className="space-y-6">
-                                <div>
-                                    <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Incident Details</h3>
-                                    <div className="mt-4 flex items-center gap-3">
-                                        <div className="rounded-lg bg-destructive/10 px-3 py-1 text-sm font-bold text-destructive capitalize">
-                                            {clientData.incident_type}
-                                        </div>
-                                    </div>
-                                    <p className="mt-4 text-sm leading-relaxed text-card-foreground">
-                                        {clientData.description}
-                                    </p>
-                                </div>
-
-                                <div className="space-y-4 rounded-xl border border-border/50 bg-card p-4">
-                                    <div className="flex items-center gap-3">
-                                        <Building2 className="h-4 w-4 text-muted-foreground" />
-                                        <div>
-                                            <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-tighter">Reported By</p>
-                                            <p className="text-sm font-semibold">{clientData.profiles?.agency_name || "Private Agency"}</p>
-                                        </div>
-                                    </div>
-                                </div>
+                        {/* Timeline / Technical Card */}
+                        <div className="rounded-2xl border border-border bg-card shadow-lg p-8">
+                            <div className="flex items-center gap-3 mb-8">
+                                <ShieldAlert className="h-5 w-5 text-primary" />
+                                <h3 className="text-lg font-bold">Historical Incident Timeline</h3>
                             </div>
 
-                            <div className="space-y-6">
-                                <div>
-                                    <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Information</h3>
-                                    <div className="mt-4 space-y-4">
-                                        <div className="flex items-center gap-3 text-sm">
-                                            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent">
-                                                <MapPin className="h-4 w-4 text-primary" />
-                                            </div>
-                                            <span className="font-medium">{clientData.city || "Unknown Location"}</span>
+                            <div className="relative space-y-8 before:absolute before:inset-0 before:ml-5 before:h-full before:w-0.5 before:-translate-x-px before:bg-gradient-to-b before:from-transparent before:via-border before:to-transparent">
+                                {allIncidents.map((incident, index) => (
+                                    <div key={incident.id} className="relative flex items-start gap-8 group">
+                                        {/* Timeline Dot */}
+                                        <div className={`mt-1.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-4 border-background transition-shadow group-hover:shadow-md ${incident.severity === 'High' ? 'bg-destructive' :
+                                                incident.severity === 'Medium' ? 'bg-warning' : 'bg-primary'
+                                            }`}>
+                                            <div className="h-2 w-2 rounded-full bg-white animate-pulse" />
                                         </div>
-                                        <div className="flex items-center gap-3 text-sm">
-                                            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent">
-                                                <Calendar className="h-4 w-4 text-primary" />
+
+                                        {/* Incident Content */}
+                                        <div className="flex-1 rounded-xl border border-border/50 bg-accent/30 p-5 transition-colors hover:bg-accent/50">
+                                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 mb-3">
+                                                <div className="flex items-center gap-3">
+                                                    <span className={`rounded-md px-2.5 py-0.5 text-[10px] font-black uppercase tracking-widest text-white ${incident.severity === 'High' ? 'bg-destructive shadow-sm' :
+                                                            incident.severity === 'Medium' ? 'bg-warning' : 'bg-primary'
+                                                        }`}>
+                                                        {incident.severity || 'Medium'}
+                                                    </span>
+                                                    <h4 className="text-sm font-bold capitalize">{incident.incident_type}</h4>
+                                                </div>
+                                                <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+                                                    <Calendar className="h-3.5 w-3.5" />
+                                                    {format(new Date(incident.created_at), "PPP")}
+                                                </div>
                                             </div>
-                                            <span className="font-medium">Incident Date: {format(new Date(clientData.created_at), "PPP")}</span>
+
+                                            <p className="text-sm leading-relaxed text-muted-foreground mb-4">
+                                                {incident.description}
+                                            </p>
+
+                                            <div className="grid grid-cols-2 gap-4 border-t border-border/30 pt-4">
+                                                <div className="flex items-center gap-2">
+                                                    <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
+                                                    <div className="text-[11px]">
+                                                        <span className="text-muted-foreground uppercase font-bold mr-1 tracking-tighter">Agency:</span>
+                                                        <span className="font-bold">{incident.profiles?.agency_name || "Private Agent"}</span>
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
+                                                    <div className="text-[11px]">
+                                                        <span className="text-muted-foreground uppercase font-bold mr-1 tracking-tighter">City:</span>
+                                                        <span className="font-bold">{incident.city}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-
-                                <div className="rounded-xl border border-warning/20 bg-warning/5 p-4 flex gap-3">
-                                    <AlertTriangle className="h-5 w-5 text-warning shrink-0" />
-                                    <p className="text-xs text-warning-foreground leading-tight">
-                                        <strong>Notice:</strong> This report is for informational purposes. Each agency is responsible for their own rental decisions.
-                                    </p>
-                                </div>
+                                ))}
                             </div>
+                        </div>
+
+                        {/* Verification Disclaimer */}
+                        <div className="rounded-xl border border-warning/20 bg-warning/5 p-4 flex gap-3">
+                            <AlertTriangle className="h-5 w-5 text-warning shrink-0" />
+                            <p className="text-xs text-warning-foreground leading-tight">
+                                <strong>Technical Notice:</strong> This timeline is generated from global signals. Agencies should perform their own due diligence before concluding rental agreements.
+                            </p>
                         </div>
                     </div>
                 ) : (

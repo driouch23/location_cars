@@ -109,13 +109,13 @@ export function SearchView() {
             ) : (
               <>
                 <Search className="mr-2 h-4 w-4" />
-                Search
+                Démarrer Recherche
               </>
             )}
           </Button>
         </div>
         <p className="mt-2.5 text-xs text-muted-foreground">
-          Example: AB123456 or DL-2025-789012
+          Enter CIN (e.g. AB123456) or License Number (e.g. DL-2025-001)
         </p>
       </div>
 
