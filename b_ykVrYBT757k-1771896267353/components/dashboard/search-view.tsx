@@ -29,13 +29,13 @@ export function SearchView() {
     if (!query.trim()) return
 
     setIsLoading(true)
-    const searchQuery = query.trim()
+    const normalizedQuery = query.trim().toUpperCase()
 
     try {
       const { data, error } = await supabase
         .from("blacklisted_clients")
         .select("id")
-        .ilike("cin_number", query.trim())
+        .ilike("cin_number", normalizedQuery)
         .limit(1)
 
       const hasMatch = data && data.length > 0
@@ -45,14 +45,14 @@ export function SearchView() {
         await supabase.from("search_history").insert([
           {
             agency_id: user.id,
-            search_query: searchQuery,
+            search_query: normalizedQuery,
             has_match: hasMatch,
           }
         ])
       }
 
       // Redirect to results page
-      router.push(`/search/results?q=${searchQuery}`)
+      router.push(`/search/results?q=${normalizedQuery}`)
     } catch (error) {
       console.error("Unexpected error:", error)
       setIsLoading(false)

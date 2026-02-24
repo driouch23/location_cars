@@ -36,6 +36,8 @@ function SearchResultsContent() {
                 return
             }
 
+            const normalizedCin = cin.trim().toUpperCase()
+
             try {
                 const { data, error } = await supabase
                     .from("blacklisted_clients")
@@ -45,7 +47,7 @@ function SearchResultsContent() {
               agency_name
             )
           `)
-                    .ilike("cin_number", cin)
+                    .ilike("cin_number", normalizedCin)
                     .order('created_at', { ascending: false })
                     .limit(1)
 
