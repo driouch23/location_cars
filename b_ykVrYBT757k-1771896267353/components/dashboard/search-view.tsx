@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { SuccessCard, AlertCard } from "./result-cards"
 import { supabase } from "@/lib/supabase"
 import { useAuth } from "@/components/providers/auth-provider"
+import { useRouter } from "next/navigation"
 
 interface BlacklistedClient {
   id: string
@@ -18,6 +19,7 @@ interface BlacklistedClient {
 
 export function SearchView() {
   const { user } = useAuth()
+  const router = useRouter()
   const [query, setQuery] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [clientData, setClientData] = useState<BlacklistedClient | null>(null)
@@ -50,7 +52,7 @@ export function SearchView() {
       }
 
       // Redirect to results page
-      window.location.href = `/search/results?q=${cinUpper}`
+      router.push(`/search/results?q=${cinUpper}`)
     } catch (error) {
       console.error("Unexpected error:", error)
       setIsLoading(false)
