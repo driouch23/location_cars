@@ -9,6 +9,8 @@ export function StatsBar() {
   const { session } = useAuth()
   const [flaggedCount, setFlaggedCount] = useState<number | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [clearedCount, setClearedCount] = useState<number | null>(null)
+  const [isClearedLoading, setIsClearedLoading] = useState(true)
   const [searchesToday, setSearchesToday] = useState<number | null>(null)
   const [isSearchesLoading, setIsSearchesLoading] = useState(true)
   const [isOnline, setIsOnline] = useState(true)
@@ -46,6 +48,21 @@ export function StatsBar() {
       }
     }
 
+    async function fetchClearedCount() {
+      try {
+        const { data, error } = await supabase
+          .rpc('get_cleared_count_today', { p_agency_id: session?.user.id })
+
+        if (error) throw error
+        setClearedCount(Number(data) || 0)
+      } catch (error) {
+        console.error("Error fetching cleared clients count:", error)
+        setClearedCount(0)
+      } finally {
+        setIsClearedLoading(false)
+      }
+    }
+
     async function fetchSearchesCount() {
       try {
         const today = new Date().toISOString().split('T')[0]
@@ -73,6 +90,7 @@ export function StatsBar() {
       checkConnection()
       fetchFlaggedCount()
       fetchSearchesCount()
+      fetchClearedCount()
     }
   }, [session])
 
@@ -86,7 +104,7 @@ export function StatsBar() {
     },
     {
       label: "Cleared Clients",
-      value: "0",
+      value: isClearedLoading ? "loading" : (clearedCount?.toString() || "0"),
       icon: ShieldCheck,
       color: "text-success" as const,
       bg: "bg-success/10" as const,
