@@ -8,6 +8,7 @@ import { SuccessCard, AlertCard } from "./result-cards"
 import { supabase } from "@/lib/supabase"
 import { useAuth } from "@/components/providers/auth-provider"
 import { useRouter } from "next/navigation"
+import { toast } from "sonner"
 
 interface BlacklistedClient {
   id: string

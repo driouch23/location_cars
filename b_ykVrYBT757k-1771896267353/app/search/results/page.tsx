@@ -44,19 +44,32 @@ function SearchResultsContent() {
                 setError(null)
                 const { data, error: supabaseError } = await supabase
                     .from("blacklisted_clients")
-                    .select(`
-                        *,
-                        profiles:reported_by (
-                            agency_name
-                        )
-                    `)
+                    .select("*")
                     .ilike("cin_number", normalizedCin)
                     .order('created_at', { ascending: false })
                     .limit(1)
 
                 if (supabaseError) throw supabaseError
 
-                setClientData(data && data.length > 0 ? data[0] : null)
+                if (data && data.length > 0) {
+                    const client = data[0]
+
+                    // Fetch profile separately to avoid "Relationship not found" errors
+                    if (client.reported_by) {
+                        const { data: profileData } = await supabase
+                            .from("profiles")
+                            .select("agency_name")
+                            .eq("id", client.reported_by)
+                            .maybeSingle()
+
+                        if (profileData) {
+                            client.profiles = profileData
+                        }
+                    }
+                    setClientData(client)
+                } else {
+                    setClientData(null)
+                }
             } catch (err: any) {
                 console.error("Error fetching results:", err)
                 setError(err.message || "Failed to query the blacklist database.")
