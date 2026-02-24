@@ -92,7 +92,7 @@ export function StatsBar() {
     },
     {
       label: "Cleared Clients",
-      value: "18",
+      value: "0",
       icon: ShieldCheck,
       color: "text-success" as const,
       bg: "bg-success/10" as const,
