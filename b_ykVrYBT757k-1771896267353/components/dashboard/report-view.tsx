@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { Flag, Send, Loader2, Camera } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -21,6 +22,7 @@ export function ReportView() {
   const [submitted, setSubmitted] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [cin, setCin] = useState("")
+  const [fullName, setFullName] = useState("")
   const [licenseNumber, setLicenseNumber] = useState("")
   const [severity, setSeverity] = useState("Medium")
   const [incidentType, setIncidentType] = useState("")
@@ -46,6 +48,7 @@ export function ReportView() {
         .insert([
           {
             cin_number: cin.trim().toUpperCase(),
+            full_name: fullName.trim(),
             license_number: licenseNumber.trim().toUpperCase() || null,
             severity,
             incident_type: incidentType,
@@ -60,6 +63,7 @@ export function ReportView() {
       setSubmitted(true)
       // Reset form
       setCin("")
+      setFullName("")
       setLicenseNumber("")
       setSeverity("Medium")
       setIncidentType("")
@@ -145,10 +149,28 @@ export function ReportView() {
         <OCRScanner
           isOpen={isScannerOpen}
           onClose={() => setIsScannerOpen(false)}
-          onScanComplete={(detectedCin) => {
+          onScanComplete={(detectedCin, detectedName) => {
             setCin(detectedCin)
+            if (detectedName) setFullName(detectedName)
           }}
         />
+
+        <div>
+          <label
+            htmlFor="full-name"
+            className="mb-1.5 block text-sm font-medium text-card-foreground"
+          >
+            Client Full Name
+          </label>
+          <Input
+            id="full-name"
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
+            placeholder="Enter Client Full Name"
+            className="h-11 rounded-lg"
+            disabled={isSubmitting}
+          />
+        </div>
 
         <div>
           <label

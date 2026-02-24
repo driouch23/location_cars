@@ -74,15 +74,28 @@ export function OCRScanner({ isOpen, onClose, onScanComplete }: OCRScannerProps)
                 console.log("OCR Result:", text)
 
                 // Regex for Moroccan CIN: 1 or 2 letters followed by 6 or 7 digits
-                // Example: AB123456, Z123456
                 const cinMatch = text.match(/[A-Z]{1,2}\d{5,7}/i)
+
+                // Heuristic for Full Name:
+                // 1. Split text into lines
+                // 2. Filter out short lines, lines with digits, and common labels
+                // 3. Take the first line that looks like a name (mostly uppercase letters)
+                const lines = text.split('\n').map(l => l.trim()).filter(Boolean)
+                const candidateNames = lines.filter(l =>
+                    l.length > 5 &&
+                    !/\d/.test(l) &&
+                    !/ROYAUME|MAROC|CARTE|NATIONALE|IDENTITE/i.test(l) &&
+                    l === l.toUpperCase()
+                )
+
+                const detectedName = candidateNames[0] || ""
 
                 if (cinMatch) {
                     const detectedCin = cinMatch[0].toUpperCase()
                     toast.success("ID Scanned successfully", {
-                        description: `Detected CIN: ${detectedCin}`,
+                        description: `Detected: ${detectedCin}${detectedName ? ` - ${detectedName}` : ""}`,
                     })
-                    onScanComplete(detectedCin)
+                    onScanComplete(detectedCin, detectedName)
                     handleClose()
                 } else {
                     toast.error("CIN not detected", {

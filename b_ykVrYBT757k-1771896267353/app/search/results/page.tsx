@@ -12,6 +12,7 @@ import { format } from "date-fns"
 interface BlacklistedClient {
     id: string
     cin_number: string
+    full_name?: string
     license_number?: string
     incident_type: string
     severity?: 'High' | 'Medium' | 'Low'
@@ -160,6 +161,12 @@ function SearchResultsContent() {
                                     <p className="text-[10px] uppercase font-bold text-muted-foreground">Primary CIN</p>
                                     <p className="text-sm font-bold">{allIncidents[0].cin_number}</p>
                                 </div>
+                                {allIncidents[0].full_name && (
+                                    <div>
+                                        <p className="text-[10px] uppercase font-bold text-muted-foreground">Client Name</p>
+                                        <p className="text-sm font-bold">{allIncidents[0].full_name}</p>
+                                    </div>
+                                )}
                                 {allIncidents[0].license_number && (
                                     <div>
                                         <p className="text-[10px] uppercase font-bold text-muted-foreground">Permis de conduire</p>
