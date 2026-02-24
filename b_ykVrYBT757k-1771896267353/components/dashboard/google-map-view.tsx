@@ -182,9 +182,9 @@ export function GoogleMapView({ partners = [] }: { partners?: any[] }) {
 
     useEffect(() => {
         if (apiKey) {
-            console.log("DEBUG: Google Maps API Key detected (Suffix: ..." + apiKey.slice(-4) + ")")
+            console.log("✅ Google Maps API Key found. Length:", apiKey.length, "Prefix:", apiKey.slice(0, 6));
         } else {
-            console.warn("DEBUG: Google Maps API Key MISSING in GoogleMapView")
+            console.error("❌ Google Maps API Key NOT FOUND (NEXT_PUBLIC_GOOGLE_MAPS_API_KEY is undefined)");
         }
     }, [apiKey])
 
