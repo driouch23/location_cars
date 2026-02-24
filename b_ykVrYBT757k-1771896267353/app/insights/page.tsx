@@ -6,7 +6,7 @@ import { DashboardSidebar } from "@/components/dashboard/sidebar"
 import { DashboardHeader } from "@/components/dashboard/header"
 import { ProtectedRoute } from "@/components/auth/protected-route"
 import { IncidentCharts } from "@/components/dashboard/incident-charts"
-import { RegionalMap } from "@/components/dashboard/regional-map"
+import { InteractiveMap } from "@/components/dashboard/interactive-map"
 import { supabase } from "@/lib/supabase"
 import { Loader2, TrendingUp, AlertCircle, Map as MapIcon, Info, Activity } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -21,6 +21,7 @@ export default function InsightsPage() {
         trend: any[],
         types: any[],
         cities: any[],
+        agencies: any[],
         totalSearches: number,
         totalIncidents: number
     } | null>(null)
@@ -34,6 +35,13 @@ export default function InsightsPage() {
                 const currentYear = new Date().getFullYear()
                 const startOfYear = `${currentYear}-01-01T00:00:00Z`
                 console.log("DEBUG: Fetching insights for User:", user.id, "Year:", currentYear)
+
+                // 0. Fetch Registered Agencies (Profiles)
+                const { data: profiles, error: profileError } = await supabase
+                    .from("profiles")
+                    .select("id, agency_name, city")
+
+                if (profileError) throw profileError
 
                 // 1. Fetch Agency-specific data
                 let { data: incidents, error: incidentError } = await supabase
@@ -81,7 +89,7 @@ export default function InsightsPage() {
                 }
 
                 if (!incidents || !searches) {
-                    setStats({ trend: [], types: [], cities: [], totalSearches: 0, totalIncidents: 0 })
+                    setStats({ trend: [], types: [], cities: [], agencies: [], totalSearches: 0, totalIncidents: 0 })
                     return
                 }
 
@@ -137,10 +145,44 @@ export default function InsightsPage() {
                 const cities = Object.entries(cityData).map(([name, count]) => ({ name, count }))
                     .sort((a, b) => b.count - a.count)
 
+                // Map Data Preparation
+                const cityCoords: Record<string, { lat: number; lng: number }> = {
+                    "Casablanca": { lat: 33.5731, lng: -7.5898 },
+                    "Rabat": { lat: 34.0209, lng: -6.8416 },
+                    "Marrakech": { lat: 31.6295, lng: -7.9811 },
+                    "Tangier": { lat: 35.7595, lng: -5.8330 },
+                    "Agadir": { lat: 30.4278, lng: -9.5981 },
+                    "Fes": { lat: 34.0333, lng: -5.0000 },
+                    "Meknes": { lat: 33.8935, lng: -5.5473 },
+                    "Kenitra": { lat: 34.261, lng: -6.5802 },
+                    "Tetouan": { lat: 35.5889, lng: -5.3626 },
+                    "Oujda": { lat: 34.6867, lng: -1.9114 }
+                }
+
+                // Process Registered Agencies
+                const registeredAgencies = (profiles || []).map(p => ({
+                    id: p.id,
+                    name: p.agency_name,
+                    city: p.city,
+                    lat: cityCoords[p.city]?.lat || (31.7917 + (Math.random() - 0.5) * 4),
+                    lng: cityCoords[p.city]?.lng || (-7.0926 + (Math.random() - 0.5) * 4),
+                    type: 'registered' as const
+                }))
+
+                // Mock General Agencies
+                const mockGeneralAgencies = [
+                    { id: 'g1', name: 'Elite Car Rental', city: 'Casablanca', lat: 33.585, lng: -7.63, type: 'general' as const },
+                    { id: 'g2', name: 'Atlas Rent a Car', city: 'Marrakech', lat: 31.635, lng: -8.01, type: 'general' as const },
+                    { id: 'g3', name: 'Rabat City Cars', city: 'Rabat', lat: 34.015, lng: -6.85, type: 'general' as const },
+                    { id: 'g4', name: 'Tangier Drive', city: 'Tangier', lat: 35.77, lng: -5.8, type: 'general' as const },
+                    { id: 'g5', name: 'Desert Explorer Rent', city: 'Agadir', lat: 30.41, lng: -9.58, type: 'general' as const }
+                ]
+
                 setStats({
                     trend,
                     types,
                     cities,
+                    agencies: [...registeredAgencies, ...mockGeneralAgencies],
                     totalSearches: searches.length,
                     totalIncidents: incidents.length
                 })
@@ -284,7 +326,7 @@ export default function InsightsPage() {
                                     </div>
                                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 items-center">
                                         <div className="lg:col-span-2 h-[500px]">
-                                            {stats && <RegionalMap data={stats.cities} />}
+                                            {stats && <InteractiveMap agencies={stats.agencies} />}
                                         </div>
                                         <div className="space-y-6">
                                             <h4 className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground">High-Risk Regions</h4>
