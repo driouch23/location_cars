@@ -22,6 +22,7 @@ export function ReportView() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [cin, setCin] = useState("")
   const [incidentType, setIncidentType] = useState("")
+  const [city, setCity] = useState("")
   const [description, setDescription] = useState("")
 
   const handleSubmit = async () => {
@@ -44,6 +45,7 @@ export function ReportView() {
             cin_number: cin,
             incident_type: incidentType,
             description: description,
+            city: city,
           }
         ])
 
@@ -54,6 +56,7 @@ export function ReportView() {
       // Reset form
       setCin("")
       setIncidentType("")
+      setCity("")
       setDescription("")
     } catch (error) {
       console.error("Error submitting report:", error)
@@ -144,6 +147,36 @@ export function ReportView() {
               <SelectItem value="damage">Vehicle Damage</SelectItem>
               <SelectItem value="fraud">Fraudulent Documents</SelectItem>
               <SelectItem value="other">Other</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div>
+          <label
+            htmlFor="city"
+            className="mb-1.5 block text-sm font-medium text-card-foreground"
+          >
+            Incident City
+          </label>
+          <Select
+            value={city}
+            onValueChange={setCity}
+            disabled={isSubmitting}
+          >
+            <SelectTrigger id="city" className="h-11 rounded-lg">
+              <SelectValue placeholder="Select city" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Casablanca">Casablanca</SelectItem>
+              <SelectItem value="Rabat">Rabat</SelectItem>
+              <SelectItem value="Marrakech">Marrakech</SelectItem>
+              <SelectItem value="Tangier">Tangier</SelectItem>
+              <SelectItem value="Agadir">Agadir</SelectItem>
+              <SelectItem value="Fes">Fes</SelectItem>
+              <SelectItem value="Meknes">Meknes</SelectItem>
+              <SelectItem value="Oujda">Oujda</SelectItem>
+              <SelectItem value="Kenitra">Kenitra</SelectItem>
+              <SelectItem value="Tetouan">Tetouan</SelectItem>
             </SelectContent>
           </Select>
         </div>

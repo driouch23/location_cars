@@ -8,13 +8,21 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
-import { Shield, Loader2, KeyRound, Mail, Building2, User } from "lucide-react"
+import { Shield, Loader2, KeyRound, Mail, Building2, User, MapPin } from "lucide-react"
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
 
 export default function RegisterPage() {
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
     const [fullName, setFullName] = useState("")
     const [agencyName, setAgencyName] = useState("")
+    const [city, setCity] = useState("")
     const [isLoading, setIsLoading] = useState(false)
     const router = useRouter()
 
@@ -31,6 +39,7 @@ export default function RegisterPage() {
                     data: {
                         agency_name: agencyName,
                         full_name: fullName,
+                        city: city,
                     },
                 },
             })
