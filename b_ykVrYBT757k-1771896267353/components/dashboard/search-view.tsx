@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Search, ScanLine, Loader2 } from "lucide-react"
+import { Search, ScanLine, Loader2, Camera } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { SuccessCard, AlertCard } from "./result-cards"
@@ -9,6 +9,7 @@ import { supabase } from "@/lib/supabase"
 import { useAuth } from "@/components/providers/auth-provider"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
+import { OCRScanner } from "./ocr-scanner"
 
 interface BlacklistedClient {
   id: string
@@ -25,6 +26,7 @@ export function SearchView() {
   const [isLoading, setIsLoading] = useState(false)
   const [clientData, setClientData] = useState<BlacklistedClient | null>(null)
   const [hasSearched, setHasSearched] = useState(false)
+  const [isScannerOpen, setIsScannerOpen] = useState(false)
 
   const handleSearch = async () => {
     if (!query.trim()) return
@@ -93,8 +95,15 @@ export function SearchView() {
               onKeyDown={(e) => {
                 if (e.key === "Enter") handleSearch()
               }}
-              className="h-12 rounded-xl border-border bg-card pl-11 text-sm text-card-foreground shadow-sm placeholder:text-muted-foreground/60 focus-visible:border-primary focus-visible:ring-primary/20"
+              className="h-12 rounded-xl border-border bg-card pl-11 pr-12 text-sm text-card-foreground shadow-sm placeholder:text-muted-foreground/60 focus-visible:border-primary focus-visible:ring-primary/20"
             />
+            <button
+              onClick={() => setIsScannerOpen(true)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-1.5 text-muted-foreground hover:bg-accent hover:text-primary transition-colors"
+              title="Scan CIN Card"
+            >
+              <Camera className="h-5 w-5" />
+            </button>
           </div>
           <Button
             onClick={handleSearch}
@@ -118,6 +127,15 @@ export function SearchView() {
           Enter CIN (e.g. AB123456) or License Number (e.g. DL-2025-001)
         </p>
       </div>
+
+      {/* OCR Scanner Modal */}
+      <OCRScanner
+        isOpen={isScannerOpen}
+        onClose={() => setIsScannerOpen(false)}
+        onScanComplete={(cin) => {
+          setQuery(cin)
+        }}
+      />
 
       {/* Results Section */}
       {hasSearched && (

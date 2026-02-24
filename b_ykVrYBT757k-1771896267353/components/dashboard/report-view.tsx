@@ -1,7 +1,6 @@
 "use client"
 
-import { useState } from "react"
-import { Flag, Send, Loader2 } from "lucide-react"
+import { Flag, Send, Loader2, Camera } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
@@ -15,6 +14,7 @@ import {
 import { supabase } from "@/lib/supabase"
 import { toast } from "sonner"
 import { useAuth } from "@/components/providers/auth-provider"
+import { OCRScanner } from "./ocr-scanner"
 
 export function ReportView() {
   const { user } = useAuth()
@@ -26,6 +26,7 @@ export function ReportView() {
   const [incidentType, setIncidentType] = useState("")
   const [city, setCity] = useState("")
   const [description, setDescription] = useState("")
+  const [isScannerOpen, setIsScannerOpen] = useState(false)
 
   const handleSubmit = async () => {
     if (!cin || !incidentType || !description) {
@@ -121,15 +122,33 @@ export function ReportView() {
           >
             Client CIN
           </label>
-          <Input
-            id="cin"
-            value={cin}
-            onChange={(e) => setCin(e.target.value)}
-            placeholder="Enter CIN Number (e.g. AB123456)"
-            className="h-11 rounded-lg"
-            disabled={isSubmitting}
-          />
+          <div className="relative">
+            <Input
+              id="cin"
+              value={cin}
+              onChange={(e) => setCin(e.target.value)}
+              placeholder="Enter CIN Number (e.g. AB123456)"
+              className="h-11 rounded-lg pr-12"
+              disabled={isSubmitting}
+            />
+            <button
+              onClick={() => setIsScannerOpen(true)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-1.5 text-muted-foreground hover:bg-accent hover:text-primary transition-colors"
+              title="Scan CIN Card"
+              type="button"
+            >
+              <Camera className="h-5 w-5" />
+            </button>
+          </div>
         </div>
+
+        <OCRScanner
+          isOpen={isScannerOpen}
+          onClose={() => setIsScannerOpen(false)}
+          onScanComplete={(detectedCin) => {
+            setCin(detectedCin)
+          }}
+        />
 
         <div>
           <label
