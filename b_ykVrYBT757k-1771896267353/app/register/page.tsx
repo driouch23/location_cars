@@ -116,6 +116,30 @@ export default function RegisterPage() {
                         </div>
 
                         <div className="space-y-2">
+                            <Label htmlFor="city">Agency City</Label>
+                            <div className="relative">
+                                <MapPin className="absolute left-3 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                                <Select onValueChange={setCity} value={city} required>
+                                    <SelectTrigger className="h-11 rounded-lg pl-10" id="city">
+                                        <SelectValue placeholder="Select city" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="Casablanca">Casablanca</SelectItem>
+                                        <SelectItem value="Rabat">Rabat</SelectItem>
+                                        <SelectItem value="Marrakech">Marrakech</SelectItem>
+                                        <SelectItem value="Tangier">Tangier</SelectItem>
+                                        <SelectItem value="Agadir">Agadir</SelectItem>
+                                        <SelectItem value="Fes">Fes</SelectItem>
+                                        <SelectItem value="Meknes">Meknes</SelectItem>
+                                        <SelectItem value="Oujda">Oujda</SelectItem>
+                                        <SelectItem value="Kenitra">Kenitra</SelectItem>
+                                        <SelectItem value="Tetouan">Tetouan</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </div>
+
+                        <div className="space-y-2">
                             <Label htmlFor="email">Email Address</Label>
                             <div className="relative">
                                 <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
