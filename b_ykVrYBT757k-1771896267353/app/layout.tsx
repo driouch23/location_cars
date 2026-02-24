@@ -33,6 +33,9 @@ export const viewport: Viewport = {
   userScalable: true,
 }
 
+import { AuthProvider } from '@/components/providers/auth-provider'
+import { Toaster } from 'sonner'
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -41,7 +44,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.variable} ${jetbrainsMono.variable} font-sans antialiased`}>
-        {children}
+        <AuthProvider>
+          {children}
+          <Toaster position="top-center" richColors />
+        </AuthProvider>
         <Analytics />
       </body>
     </html>

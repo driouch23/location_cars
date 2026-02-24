@@ -3,8 +3,10 @@
 import { useState, useEffect } from "react"
 import { Search, ShieldAlert, ShieldCheck, Activity, Loader2 } from "lucide-react"
 import { supabase } from "@/lib/supabase"
+import { useAuth } from "@/components/providers/auth-provider"
 
 export function StatsBar() {
+  const { session } = useAuth()
   const [flaggedCount, setFlaggedCount] = useState<number | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [searchesToday, setSearchesToday] = useState<number | null>(null)
@@ -73,10 +75,12 @@ export function StatsBar() {
       }
     }
 
-    checkConnection()
-    fetchFlaggedCount()
-    fetchSearchesCount()
-  }, [])
+    if (session) {
+      checkConnection()
+      fetchFlaggedCount()
+      fetchSearchesCount()
+    }
+  }, [session])
 
   const stats = [
     {
