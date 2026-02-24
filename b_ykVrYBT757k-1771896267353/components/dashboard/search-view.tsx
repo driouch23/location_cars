@@ -29,30 +29,30 @@ export function SearchView() {
     if (!query.trim()) return
 
     setIsLoading(true)
-    const cinUpper = query.trim().toUpperCase()
+    const searchQuery = query.trim()
 
     try {
       const { data, error } = await supabase
         .from("blacklisted_clients")
         .select("id")
-        .ilike("cin_number", cinUpper)
-        .maybeSingle()
+        .ilike("cin_number", query.trim())
+        .limit(1)
 
-      const hasMatch = !!data
+      const hasMatch = data && data.length > 0
 
       // Log the search in history
       if (user) {
         await supabase.from("search_history").insert([
           {
             agency_id: user.id,
-            search_query: cinUpper,
+            search_query: searchQuery,
             has_match: hasMatch,
           }
         ])
       }
 
       // Redirect to results page
-      router.push(`/search/results?q=${cinUpper}`)
+      router.push(`/search/results?q=${searchQuery}`)
     } catch (error) {
       console.error("Unexpected error:", error)
       setIsLoading(false)

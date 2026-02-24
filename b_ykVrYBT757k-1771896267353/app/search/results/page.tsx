@@ -46,10 +46,11 @@ function SearchResultsContent() {
             )
           `)
                     .ilike("cin_number", cin)
-                    .maybeSingle()
+                    .order('created_at', { ascending: false })
+                    .limit(1)
 
                 if (error) throw error
-                setClientData(data)
+                setClientData(data && data.length > 0 ? data[0] : null)
             } catch (error) {
                 console.error("Error fetching results:", error)
             } finally {
