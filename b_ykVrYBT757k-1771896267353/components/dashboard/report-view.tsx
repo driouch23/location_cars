@@ -54,6 +54,7 @@ export function ReportView() {
             incident_type: incidentType,
             description: description,
             city: city,
+            reported_by: user.id,
           }
         ])
 

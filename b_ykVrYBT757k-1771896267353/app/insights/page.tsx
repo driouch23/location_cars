@@ -33,6 +33,7 @@ export default function InsightsPage() {
             try {
                 const currentYear = new Date().getFullYear()
                 const startOfYear = `${currentYear}-01-01T00:00:00Z`
+                console.log("DEBUG: Fetching insights for User:", user.id, "Year:", currentYear)
 
                 // 1. Fetch Agency-specific data
                 let { data: incidents, error: incidentError } = await supabase
@@ -50,8 +51,12 @@ export default function InsightsPage() {
                 if (incidentError) throw incidentError
                 if (searchError) throw searchError
 
+                console.log("DEBUG: Agency Incidents:", incidents?.length || 0)
+                console.log("DEBUG: Agency Searches:", searches?.length || 0)
+
                 // 2. Fallback to Global stats if Agency stats are empty
                 const hasAgencyData = (incidents && incidents.length > 0) || (searches && searches.length > 0)
+                console.log("DEBUG: Has Agency Data:", hasAgencyData)
 
                 if (!hasAgencyData) {
                     setIsGlobal(true)
@@ -70,6 +75,7 @@ export default function InsightsPage() {
 
                     incidents = globalIncidents
                     searches = globalSearches
+                    console.log("DEBUG: Falling back to Global. Incidents:", incidents?.length || 0, "Searches:", searches?.length || 0)
                 } else {
                     setIsGlobal(false)
                 }

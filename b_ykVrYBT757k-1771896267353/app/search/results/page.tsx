@@ -42,6 +42,7 @@ function SearchResultsContent() {
 
             // Strict normalization: trim and uppercase
             const normalizedCin = cin.trim().toUpperCase()
+            console.log("DEBUG: Normalized Search Query:", normalizedCin)
 
             try {
                 setError(null)
@@ -53,6 +54,8 @@ function SearchResultsContent() {
                     .order('created_at', { ascending: false })
 
                 if (supabaseError) throw supabaseError
+
+                console.log("DEBUG: Incidents Found:", data?.length || 0)
 
                 if (data && data.length > 0) {
                     // Fetch profiles for all incidents to ensure agency names are shown
@@ -70,6 +73,7 @@ function SearchResultsContent() {
                             return incident
                         })
                     )
+                    console.log("DEBUG: Incidents with Profile Data:", incidentsWithProfiles)
                     setAllIncidents(incidentsWithProfiles)
                 } else {
                     setAllIncidents([])
