@@ -6,7 +6,7 @@ import { DashboardSidebar } from "@/components/dashboard/sidebar"
 import { DashboardHeader } from "@/components/dashboard/header"
 import { ProtectedRoute } from "@/components/auth/protected-route"
 import { IncidentCharts } from "@/components/dashboard/incident-charts"
-import { GoogleMapView } from "@/components/dashboard/google-map-view"
+import { LeafletMapView } from "@/components/dashboard/leaflet-map-view"
 import { supabase } from "@/lib/supabase"
 import { Loader2, TrendingUp, AlertCircle, Map as MapIcon, Info, Activity } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -293,7 +293,7 @@ export default function InsightsPage() {
                                     </div>
                                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 items-center">
                                         <div className="lg:col-span-2 h-[500px]">
-                                            {stats && <GoogleMapView partners={stats.agencies} incidents={stats.cities} />}
+                                            {stats && <LeafletMapView partners={stats.agencies} incidents={stats.cities} />}
                                         </div>
                                         <div className="space-y-6">
                                             <h4 className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground">High-Risk Regions</h4>
