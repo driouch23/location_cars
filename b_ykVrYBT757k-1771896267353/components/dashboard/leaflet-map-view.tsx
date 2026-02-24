@@ -75,6 +75,8 @@ export function LeafletMapView({ partners = [], incidents = [] }: MapViewProps) 
 
     const center: [number, number] = [31.7917, -7.0926]
 
+    const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
+
     return (
         <div className="h-full w-full overflow-hidden rounded-2xl border border-border bg-card shadow-lg relative isolate">
             <MapContainer
@@ -86,10 +88,17 @@ export function LeafletMapView({ partners = [], incidents = [] }: MapViewProps) 
             >
                 <LayersControl position="topright">
                     <LayersControl.BaseLayer checked name="Satellite View">
-                        <TileLayer
-                            attribution='&copy; ESRI Satellite'
-                            url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-                        />
+                        {mapboxToken ? (
+                            <TileLayer
+                                attribution='&copy; <a href="https://www.mapbox.com/about/maps/">Mapbox</a>'
+                                url={`https://api.mapbox.com/styles/v1/mapbox/satellite-v9/tiles/{z}/{x}/{y}?access_token=${mapboxToken}`}
+                            />
+                        ) : (
+                            <TileLayer
+                                attribution='&copy; ESRI Satellite'
+                                url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+                            />
+                        )}
                     </LayersControl.BaseLayer>
                     <LayersControl.BaseLayer name="Street View">
                         <TileLayer
