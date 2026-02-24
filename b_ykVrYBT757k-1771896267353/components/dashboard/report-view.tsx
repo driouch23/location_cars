@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Flag, Send } from "lucide-react"
+import { Flag, Send, Loader2 } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
@@ -12,9 +12,49 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { supabase } from "@/lib/supabase"
+import { toast } from "sonner"
 
 export function ReportView() {
   const [submitted, setSubmitted] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [cin, setCin] = useState("")
+  const [incidentType, setIncidentType] = useState("")
+  const [description, setDescription] = useState("")
+
+  const handleSubmit = async () => {
+    if (!cin || !incidentType || !description) {
+      toast.error("Please fill in all fields")
+      return
+    }
+
+    setIsSubmitting(true)
+    try {
+      const { error } = await supabase
+        .from("blacklisted_clients")
+        .insert([
+          {
+            cin_number: cin,
+            incident_type: incidentType,
+            description: description
+          }
+        ])
+
+      if (error) throw error
+
+      toast.success("Client successfully reported to the network")
+      setSubmitted(true)
+      // Reset form
+      setCin("")
+      setIncidentType("")
+      setDescription("")
+    } catch (error) {
+      console.error("Error submitting report:", error)
+      toast.error("Failed to submit report. Please try again.")
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
 
   if (submitted) {
     return (
@@ -67,8 +107,11 @@ export function ReportView() {
           </label>
           <Input
             id="cin"
+            value={cin}
+            onChange={(e) => setCin(e.target.value)}
             placeholder="Enter CIN or Driver's License Number"
             className="h-11 rounded-lg"
+            disabled={isSubmitting}
           />
         </div>
 
@@ -79,7 +122,11 @@ export function ReportView() {
           >
             Incident Type
           </label>
-          <Select>
+          <Select
+            value={incidentType}
+            onValueChange={setIncidentType}
+            disabled={isSubmitting}
+          >
             <SelectTrigger id="incident-type" className="h-11 rounded-lg">
               <SelectValue placeholder="Select incident type" />
             </SelectTrigger>
@@ -103,17 +150,30 @@ export function ReportView() {
           </label>
           <Textarea
             id="description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
             placeholder="Provide details about the incident..."
             className="min-h-[120px] rounded-lg resize-none"
+            disabled={isSubmitting}
           />
         </div>
 
         <Button
-          onClick={() => setSubmitted(true)}
+          onClick={handleSubmit}
+          disabled={isSubmitting}
           className="h-11 w-full rounded-lg bg-destructive text-sm font-semibold text-destructive-foreground shadow-sm hover:bg-destructive/90"
         >
-          <Send className="mr-2 h-4 w-4" />
-          Submit Report
+          {isSubmitting ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Submitting...
+            </>
+          ) : (
+            <>
+              <Send className="mr-2 h-4 w-4" />
+              Submit Report
+            </>
+          )}
         </Button>
       </div>
     </div>
