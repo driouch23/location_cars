@@ -27,6 +27,7 @@ function SearchResultsContent() {
     const router = useRouter()
     const cin = searchParams.get("q")
     const [loading, setLoading] = useState(true)
+    const [error, setError] = useState<string | null>(null)
     const [clientData, setClientData] = useState<BlacklistedClient | null>(null)
 
     useEffect(() => {
@@ -36,25 +37,29 @@ function SearchResultsContent() {
                 return
             }
 
+            // Strict normalization: trim and uppercase
             const normalizedCin = cin.trim().toUpperCase()
 
             try {
-                const { data, error } = await supabase
+                setError(null)
+                const { data, error: supabaseError } = await supabase
                     .from("blacklisted_clients")
                     .select(`
-            *,
-            profiles:reported_by (
-              agency_name
-            )
-          `)
+                        *,
+                        profiles:reported_by (
+                            agency_name
+                        )
+                    `)
                     .ilike("cin_number", normalizedCin)
                     .order('created_at', { ascending: false })
                     .limit(1)
 
-                if (error) throw error
+                if (supabaseError) throw supabaseError
+
                 setClientData(data && data.length > 0 ? data[0] : null)
-            } catch (error) {
-                console.error("Error fetching results:", error)
+            } catch (err: any) {
+                console.error("Error fetching results:", err)
+                setError(err.message || "Failed to query the blacklist database.")
             } finally {
                 setLoading(false)
             }
@@ -67,7 +72,35 @@ function SearchResultsContent() {
         return (
             <div className="flex h-[60vh] flex-col items-center justify-center space-y-4">
                 <Loader2 className="h-10 w-10 animate-spin text-primary" />
-                <p className="text-muted-foreground font-medium">Analyzing database records...</p>
+                <p className="text-muted-foreground font-medium">Verifying global security database...</p>
+            </div>
+        )
+    }
+
+    if (error) {
+        return (
+            <div className="mx-auto max-w-4xl space-y-6">
+                <Button
+                    variant="ghost"
+                    onClick={() => router.back()}
+                    className="group -ml-3 text-muted-foreground hover:text-foreground"
+                >
+                    <ChevronLeft className="mr-2 h-4 w-4 transition-transform group-hover:-translate-x-1" />
+                    Back to Dashboard
+                </Button>
+
+                <div className="overflow-hidden rounded-2xl border border-destructive/20 bg-destructive/5 p-12 text-center">
+                    <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-destructive/10">
+                        <AlertTriangle className="h-8 w-8 text-destructive" />
+                    </div>
+                    <h3 className="mt-6 text-xl font-semibold text-foreground">Database Query Failed</h3>
+                    <p className="mx-auto mt-2 max-w-sm text-sm text-muted-foreground">
+                        We couldn't verify this CIN due to a database error. Please ensure the global search policy is applied.
+                    </p>
+                    <div className="mt-6 rounded-lg bg-destructive/10 p-3 text-xs font-mono text-destructive">
+                        Error: {error}
+                    </div>
+                </div>
             </div>
         )
     }

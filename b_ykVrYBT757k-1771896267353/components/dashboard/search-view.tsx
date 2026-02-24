@@ -38,6 +38,8 @@ export function SearchView() {
         .ilike("cin_number", normalizedQuery)
         .limit(1)
 
+      if (error) throw error
+
       const hasMatch = data && data.length > 0
 
       // Log the search in history
@@ -54,7 +56,10 @@ export function SearchView() {
       // Redirect to results page
       router.push(`/search/results?q=${normalizedQuery}`)
     } catch (error) {
-      console.error("Unexpected error:", error)
+      console.error("Search error:", error)
+      toast.error("Verification failed", {
+        description: "Could not connect to the security database. Please try again."
+      })
       setIsLoading(false)
     }
   }
