@@ -36,7 +36,7 @@ export function SearchView() {
       const { data, error } = await supabase
         .from("blacklisted_clients")
         .select("id")
-        .ilike("cin_number", normalizedQuery)
+        .or(`cin_number.ilike.${normalizedQuery},license_number.ilike.${normalizedQuery}`)
         .limit(1)
 
       if (error) throw error

@@ -44,33 +44,34 @@ function SearchResultsContent() {
 
             try {
                 setError(null)
+                // Search both CIN and License Number
                 const { data, error: supabaseError } = await supabase
                     .from("blacklisted_clients")
                     .select("*")
-                    .ilike("cin_number", normalizedCin)
+                    .or(`cin_number.ilike.${normalizedCin},license_number.ilike.${normalizedCin}`)
                     .order('created_at', { ascending: false })
-                    .limit(1)
 
                 if (supabaseError) throw supabaseError
 
                 if (data && data.length > 0) {
-                    const client = data[0]
+                    // Fetch profiles for all incidents to ensure agency names are shown
+                    const incidentsWithProfiles = await Promise.all(
+                        data.map(async (incident) => {
+                            if (incident.reported_by) {
+                                const { data: profileData } = await supabase
+                                    .from("profiles")
+                                    .select("agency_name")
+                                    .eq("id", incident.reported_by)
+                                    .maybeSingle()
 
-                    // Fetch profile separately to avoid "Relationship not found" errors
-                    if (client.reported_by) {
-                        const { data: profileData } = await supabase
-                            .from("profiles")
-                            .select("agency_name")
-                            .eq("id", client.reported_by)
-                            .maybeSingle()
-
-                        if (profileData) {
-                            client.profiles = profileData
-                        }
-                    }
-                    setClientData(client)
+                                return { ...incident, profiles: profileData || undefined }
+                            }
+                            return incident
+                        })
+                    )
+                    setAllIncidents(incidentsWithProfiles)
                 } else {
-                    setClientData(null)
+                    setAllIncidents([])
                 }
             } catch (err: any) {
                 console.error("Error fetching results:", err)
@@ -186,7 +187,7 @@ function SearchResultsContent() {
                                     <div key={incident.id} className="relative flex items-start gap-8 group">
                                         {/* Timeline Dot */}
                                         <div className={`mt-1.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-4 border-background transition-shadow group-hover:shadow-md ${incident.severity === 'High' ? 'bg-destructive' :
-                                                incident.severity === 'Medium' ? 'bg-warning' : 'bg-primary'
+                                            incident.severity === 'Medium' ? 'bg-warning' : 'bg-primary'
                                             }`}>
                                             <div className="h-2 w-2 rounded-full bg-white animate-pulse" />
                                         </div>
@@ -196,7 +197,7 @@ function SearchResultsContent() {
                                             <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 mb-3">
                                                 <div className="flex items-center gap-3">
                                                     <span className={`rounded-md px-2.5 py-0.5 text-[10px] font-black uppercase tracking-widest text-white ${incident.severity === 'High' ? 'bg-destructive shadow-sm' :
-                                                            incident.severity === 'Medium' ? 'bg-warning' : 'bg-primary'
+                                                        incident.severity === 'Medium' ? 'bg-warning' : 'bg-primary'
                                                         }`}>
                                                         {incident.severity || 'Medium'}
                                                     </span>
