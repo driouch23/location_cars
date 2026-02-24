@@ -27,22 +27,16 @@ export function SearchView() {
     if (!query.trim()) return
 
     setIsLoading(true)
-    setHasSearched(false)
+    const cinUpper = query.trim().toUpperCase()
 
     try {
-      const cinUpper = query.trim().toUpperCase()
       const { data, error } = await supabase
         .from("blacklisted_clients")
-        .select("*")
+        .select("id")
         .eq("cin_number", cinUpper)
-        .single()
+        .maybeSingle()
 
-      if (error && error.code !== "PGRST116") {
-        console.error("Error searching client:", error)
-      }
-
-      setClientData(data || null)
-      setHasSearched(true)
+      const hasMatch = !!data
 
       // Log the search in history
       if (user) {
@@ -50,12 +44,15 @@ export function SearchView() {
           {
             agency_id: user.id,
             search_query: cinUpper,
+            has_match: hasMatch,
           }
         ])
       }
+
+      // Redirect to results page
+      window.location.href = `/search/results?q=${cinUpper}`
     } catch (error) {
       console.error("Unexpected error:", error)
-    } finally {
       setIsLoading(false)
     }
   }
