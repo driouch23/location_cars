@@ -1,18 +1,13 @@
 "use client"
 
-import { useEffect, useState, useMemo } from "react"
-import { MapContainer, TileLayer, Marker, Popup, useMap, LayersControl } from "react-leaflet"
+import { useEffect, useState } from "react"
+import { MapContainer, TileLayer, Marker, Popup, LayersControl } from "react-leaflet"
+import MarkerClusterGroup from "react-leaflet-cluster"
 import L from "leaflet"
 import "leaflet/dist/leaflet.css"
-import { Building2, Phone, MapPin, ShieldCheck, AlertCircle, Layers, Map as MapIcon } from "lucide-react"
-
-// Fix for default Leaflet marker icons in Next.js
-const DefaultIcon = L.icon({
-    iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-    shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-})
+import "leaflet.markercluster/dist/MarkerCluster.css"
+import "leaflet.markercluster/dist/MarkerCluster.Default.css"
+import { Building2, MapPin, ShieldCheck, AlertCircle, Map as MapIcon } from "lucide-react"
 
 // Custom SVG Markers
 const createCustomIcon = (type: 'partner' | 'general' | 'risk') => {
@@ -35,7 +30,6 @@ const createCustomIcon = (type: 'partner' | 'general' | 'risk') => {
 }
 
 const partnerIcon = createCustomIcon('partner')
-const generalIcon = createCustomIcon('general')
 const riskIcon = createCustomIcon('risk')
 
 const cityCoords: Record<string, [number, number]> = {
@@ -68,14 +62,12 @@ export function LeafletMapView({ partners = [], incidents = [] }: MapViewProps) 
     if (!mounted) {
         return (
             <div className="h-full w-full animate-pulse rounded-2xl bg-muted/50 border border-border flex items-center justify-center">
-                <p className="text-muted-foreground font-medium italic">Waking up satellite engine...</p>
+                <p className="text-muted-foreground font-medium italic">Loading satellite systems...</p>
             </div>
         )
     }
 
     const center: [number, number] = [31.7917, -7.0926]
-
-    const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
 
     return (
         <div className="h-full w-full overflow-hidden rounded-2xl border border-border bg-card shadow-lg relative isolate">
@@ -87,20 +79,13 @@ export function LeafletMapView({ partners = [], incidents = [] }: MapViewProps) 
                 zoomControl={false}
             >
                 <LayersControl position="topright">
-                    <LayersControl.BaseLayer checked name="Satellite View">
-                        {mapboxToken ? (
-                            <TileLayer
-                                attribution='&copy; <a href="https://www.mapbox.com/about/maps/">Mapbox</a>'
-                                url={`https://api.mapbox.com/styles/v1/mapbox/satellite-v9/tiles/{z}/{x}/{y}?access_token=${mapboxToken}`}
-                            />
-                        ) : (
-                            <TileLayer
-                                attribution='&copy; ESRI Satellite'
-                                url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-                            />
-                        )}
+                    <LayersControl.BaseLayer checked name="Satellite View (Esri)">
+                        <TileLayer
+                            attribution='&copy; ESRI World Imagery'
+                            url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+                        />
                     </LayersControl.BaseLayer>
-                    <LayersControl.BaseLayer name="Street View">
+                    <LayersControl.BaseLayer name="Street View (OSM)">
                         <TileLayer
                             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -108,58 +93,64 @@ export function LeafletMapView({ partners = [], incidents = [] }: MapViewProps) 
                     </LayersControl.BaseLayer>
                 </LayersControl>
 
-                {/* Markers for Partners */}
-                {partners.map((p) => {
-                    const coords = cityCoords[p.city] || [31.7917 + (Math.random() - 0.5), -7.0926 + (Math.random() - 0.5)]
-                    return (
-                        <Marker key={p.id} position={coords} icon={partnerIcon}>
-                            <Popup className="premium-popup">
-                                <div className="p-2 min-w-[200px]">
-                                    <div className="mb-2">
-                                        <span className="bg-success/10 text-success text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border border-success/20">
-                                            Official Partner
-                                        </span>
+                <MarkerClusterGroup
+                    chunkedLoading
+                    maxClusterRadius={50}
+                    spiderfyOnMaxZoom={true}
+                >
+                    {/* Markers for Partners */}
+                    {partners.map((p) => {
+                        const coords = cityCoords[p.city] || [31.7917 + (Math.random() - 0.5) * 0.1, -7.0926 + (Math.random() - 0.5) * 0.1]
+                        return (
+                            <Marker key={`partner-${p.id}`} position={coords} icon={partnerIcon}>
+                                <Popup className="premium-popup">
+                                    <div className="p-2 min-w-[200px]">
+                                        <div className="mb-2">
+                                            <span className="bg-success/10 text-success text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border border-success/20">
+                                                Official Partner
+                                            </span>
+                                        </div>
+                                        <h4 className="font-bold text-sm text-foreground">{p.agency_name}</h4>
+                                        <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                                            <MapPin className="h-3 w-3" /> {p.city}, Morocco
+                                        </p>
+                                        <div className="mt-3 pt-2 border-t border-border flex items-center gap-2">
+                                            <ShieldCheck className="h-3.5 w-3.5 text-success" />
+                                            <span className="text-[10px] font-bold text-success uppercase">Verified Secure</span>
+                                        </div>
                                     </div>
-                                    <h4 className="font-bold text-sm text-foreground">{p.agency_name}</h4>
-                                    <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-                                        <MapPin className="h-3 w-3" /> {p.city}, Morocco
-                                    </p>
-                                    <div className="mt-3 pt-2 border-t border-border flex items-center gap-2">
-                                        <ShieldCheck className="h-3.5 w-3.5 text-success" />
-                                        <span className="text-[10px] font-bold text-success uppercase">Verified Secure</span>
-                                    </div>
-                                </div>
-                            </Popup>
-                        </Marker>
-                    )
-                })}
+                                </Popup>
+                            </Marker>
+                        )
+                    })}
 
-                {/* Markers for Risk Centers (Incidents) */}
-                {incidents.map((c) => {
-                    const coords = cityCoords[c.name]
-                    if (!coords) return null
-                    return (
-                        <Marker key={`risk-${c.name}`} position={coords} icon={riskIcon}>
-                            <Popup className="premium-popup">
-                                <div className="p-2 min-w-[200px]">
-                                    <div className="mb-2">
-                                        <span className="bg-destructive/10 text-destructive text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border border-destructive/20">
-                                            Risk Warning
-                                        </span>
+                    {/* Markers for Risk Centers (Incidents) */}
+                    {incidents.map((c) => {
+                        const coords = cityCoords[c.name]
+                        if (!coords) return null
+                        return (
+                            <Marker key={`risk-${c.name}`} position={coords} icon={riskIcon}>
+                                <Popup className="premium-popup">
+                                    <div className="p-2 min-w-[200px]">
+                                        <div className="mb-2">
+                                            <span className="bg-destructive/10 text-destructive text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border border-destructive/20">
+                                                Risk Warning
+                                            </span>
+                                        </div>
+                                        <h4 className="font-bold text-sm text-foreground">{c.name} Area</h4>
+                                        <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                                            <AlertCircle className="h-3 w-3 text-destructive" />
+                                            {c.count} Regional Incidents
+                                        </p>
+                                        <div className="mt-3 pt-2 border-t border-border text-[10px] font-medium text-muted-foreground italic">
+                                            High alertness recommended in this region.
+                                        </div>
                                     </div>
-                                    <h4 className="font-bold text-sm text-foreground">{c.name} Area</h4>
-                                    <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-                                        <AlertCircle className="h-3 w-3 text-destructive" />
-                                        {c.count} Regional Incidents
-                                    </p>
-                                    <div className="mt-3 pt-2 border-t border-border text-[10px] font-medium text-muted-foreground italic">
-                                        High alertness recommended in this region.
-                                    </div>
-                                </div>
-                            </Popup>
-                        </Marker>
-                    )
-                })}
+                                </Popup>
+                            </Marker>
+                        )
+                    })}
+                </MarkerClusterGroup>
             </MapContainer>
 
             {/* Custom Control Overlays */}
@@ -169,8 +160,8 @@ export function LeafletMapView({ partners = [], incidents = [] }: MapViewProps) 
                         <MapIcon className="h-4 w-4" />
                     </div>
                     <div className="pr-3">
-                        <p className="text-[10px] font-black uppercase tracking-tighter text-muted-foreground leading-none">Global Network</p>
-                        <p className="text-xs font-bold text-foreground">Morocco Insights</p>
+                        <p className="text-[10px] font-black uppercase tracking-tighter text-muted-foreground leading-none">Cluster View</p>
+                        <p className="text-xs font-bold text-foreground">Morocco Security Hub</p>
                     </div>
                 </div>
             </div>
@@ -193,17 +184,12 @@ export function LeafletMapView({ partners = [], incidents = [] }: MapViewProps) 
                     background: hsl(var(--card));
                     border: 1px solid hsl(var(--border));
                 }
-                .leaflet-control-layers {
-                    border-radius: 12px !important;
-                    background: hsl(var(--card)) !important;
-                    border: 1px solid hsl(var(--border)) !important;
-                    color: hsl(var(--foreground)) !important;
-                    font-family: inherit !important;
-                    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1) !important;
-                }
-                .leaflet-control-layers-list {
-                    padding: 8px !important;
-                }
+                .marker-cluster-small { background-color: rgba(14, 165, 233, 0.6); }
+                .marker-cluster-small div { background-color: rgba(14, 165, 233, 0.9); color: white; }
+                .marker-cluster-medium { background-color: rgba(245, 158, 11, 0.6); }
+                .marker-cluster-medium div { background-color: rgba(245, 158, 11, 0.9); color: white; }
+                .marker-cluster-large { background-color: rgba(239, 68, 68, 0.6); }
+                .marker-cluster-large div { background-color: rgba(239, 68, 68, 0.9); color: white; }
             `}</style>
         </div>
     )
