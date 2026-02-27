@@ -6,7 +6,13 @@ import { DashboardSidebar } from "@/components/dashboard/sidebar"
 import { DashboardHeader } from "@/components/dashboard/header"
 import { ProtectedRoute } from "@/components/auth/protected-route"
 import { IncidentCharts } from "@/components/dashboard/incident-charts"
-import { LeafletMapView } from "@/components/dashboard/leaflet-map-view"
+import dynamic from "next/dynamic"
+
+const LeafletMapView = dynamic(
+    () => import("@/components/dashboard/leaflet-map-view").then((mod) => mod.LeafletMapView),
+    { ssr: false, loading: () => <div className="h-[500px] w-full animate-pulse rounded-2xl bg-muted/50" /> }
+)
+
 import { supabase } from "@/lib/supabase"
 import { Loader2, TrendingUp, AlertCircle, Map as MapIcon, Info, Activity } from "lucide-react"
 import { Button } from "@/components/ui/button"
