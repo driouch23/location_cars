@@ -1,6 +1,6 @@
 "use client"
 
-import { Search, Flag, ShieldCheck, Car, History, Home, Activity } from "lucide-react"
+import { Search, Flag, ShieldCheck, Car, History, Home, Activity, MapIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -14,6 +14,7 @@ const navItems = [
   { id: "dashboard", label: "Dashboard", icon: Home, href: "/" },
   { id: "history", label: "Search History", icon: History, href: "/search/history" },
   { id: "insights", label: "Agency Insights", icon: Activity, href: "/insights" },
+  { id: "agencies-map", label: "National Directory", icon: MapIcon, href: "/agencies-map" },
 ]
 
 const mainActions = [
