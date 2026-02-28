@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import { DashboardSidebar } from "@/components/dashboard/sidebar"
 import { DashboardHeader } from "@/components/dashboard/header"
 import { ProtectedRoute } from "@/components/auth/protected-route"
-import { mockAgenciesData, MockAgency } from "@/lib/mock-agencies"
+import { realAgenciesData } from "@/lib/osm-agencies"
 import { supabase } from "@/lib/supabase"
 import dynamic from "next/dynamic"
 import { DirectoryAgency } from "@/components/dashboard/directory-map-view"
@@ -34,12 +34,12 @@ export default function AgenciesMapPage() {
 
                 const registeredNames = new Set(profiles?.map(p => p.agency_name?.toLowerCase()) || [])
 
-                // Merge mock Google Places data with Supabase registration status
+                // Merge real OSM data with Supabase registration status
                 // We do a simple case-insensitive name match for demo purposes
-                const mergedData: DirectoryAgency[] = mockAgenciesData.map((mock: MockAgency) => {
-                    const isRegistered = registeredNames.has(mock.name.toLowerCase())
+                const mergedData: DirectoryAgency[] = realAgenciesData.map((agency: any) => {
+                    const isRegistered = registeredNames.has(agency.name.toLowerCase())
                     return {
-                        ...mock,
+                        ...agency,
                         isRegistered
                     }
                 })
