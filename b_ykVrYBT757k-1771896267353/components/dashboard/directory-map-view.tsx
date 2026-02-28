@@ -7,7 +7,7 @@ import L from "leaflet"
 import "leaflet/dist/leaflet.css"
 import "leaflet.markercluster/dist/MarkerCluster.css"
 import "leaflet.markercluster/dist/MarkerCluster.Default.css"
-import { Building2, MapPin, ShieldCheck, Mail, Map as MapIcon, Info } from "lucide-react"
+import { Building2, MapPin, ShieldCheck, Mail, Map as MapIcon, Info, Navigation } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 // Custom SVG Markers
@@ -123,19 +123,28 @@ export function DirectoryMapView({ agencies = [] }: DirectoryMapViewProps) {
                                         </p>
                                     </div>
 
-                                    {!agency.isRegistered && (
-                                        <div className="mt-4 pt-4 border-t border-border">
+                                    <div className="mt-4 pt-4 border-t border-border flex flex-col gap-2">
+                                        <Button
+                                            size="sm"
+                                            variant="outline"
+                                            className="w-full text-[10px] font-bold uppercase tracking-wider h-8 border-primary/20 hover:bg-primary/5 hover:text-primary transition-colors"
+                                            onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${agency.lat},${agency.lng}`, '_blank')}
+                                        >
+                                            <Navigation className="h-3 w-3 mr-2 text-primary" />
+                                            Open in Google Maps
+                                        </Button>
+                                        {!agency.isRegistered && (
                                             <Button
                                                 size="sm"
                                                 variant="default"
-                                                className="w-full text-xs font-semibold"
+                                                className="w-full text-[10px] font-bold uppercase tracking-wider h-8"
                                                 onClick={() => handleInvite(agency.name)}
                                             >
-                                                <Mail className="h-3.5 w-3.5 mr-2" />
+                                                <Mail className="h-3 w-3 mr-2" />
                                                 Invite to Join
                                             </Button>
-                                        </div>
-                                    )}
+                                        )}
+                                    </div>
                                 </div>
                             </Popup>
                         </Marker>
